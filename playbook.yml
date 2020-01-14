@@ -1,0 +1,107 @@
+- hosts: pro
+  name: ok
+  vars_prompt:
+    - name: banner
+      prompt: " _____________________ 
+             \n< Powered by Bboysoul >
+             \n --------------------- 
+             \n        \\   ^__^
+             \n         \\  (oo)\\_______
+             \n            (__)\\       )\\/\\
+             \n                ||----w |
+             \n                ||     ||
+             \n按任意键开始运行................"
+  tasks:
+# 输出服务器是不是会重启
+    - name: echo reboot 
+      debug:
+        msg: "服务器不会重启"
+      when: reboot != "y"
+# 检查主机是否存活
+    - name: check ping 
+      ping:
+# 安装epel软件源
+    - name: install epel-release
+      yum:
+        name:
+          - epel-release
+      when: software == "y"
+# 备份软件源
+    - name: backup mirror
+      command: mv /etc/yum.repos.d/ /etc/yum.repos.d.bak/ 
+      when: software == "y"
+# 修改软件源为清华大学软件源
+    - name: copy mirror
+      copy:
+        src: ./data/centos-repo/
+        dest: /etc/yum.repos.d/
+      when: software == "y"
+  # 安装常用软件
+    - name: install software
+      yum:
+        name:
+          - git
+          - wget
+          - screen
+          - nmap
+          - vim
+          - htop
+          - iftop
+          - iotop
+          - gcc
+          - gcc-c++ 
+          - net-tools
+          - unzip
+          - nfs-utils
+          - psmisc
+          - zip
+          - rsync
+          - telnet
+          - nano
+          - bzip2
+      when: software == "y"
+# 设置时间同步计划任务
+    - name: ntp cron
+      cron:
+        name: ntp 同步
+        minute: "*/10"
+        job: ntpdate ntp1.aliyun.com
+      when: ntp == "y"
+# 关闭防火墙
+    - name: close firewalld
+      systemd:
+        name: firewalld
+        state: stopped
+        enabled: no
+      when: firewalld == "y"
+# 禁止selinux
+    - name: disable selinux
+      selinux:
+        state: disabled
+      when: selinux == "y"
+# 设置主机名
+    - name: set hostname
+      hostname:
+        name: "{{hostname}}"
+      when: hostname != "n"
+# 添加用户
+    - name: add user
+      user:
+        name: "{{user_name}}"
+        password: "{{password}}"
+      when: add_user == "y"
+# 输出提示
+    - name: reboot
+      reboot:
+      when: reboot == "y"
+    - name: echo reboot 
+      debug:
+        msg: "服务器重启完成"
+      when: reboot == "y"
+
+
+
+
+
+
+    
